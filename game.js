@@ -1,22 +1,11 @@
+const score = { win: 0, lose: 0, tie: 0 };
+const buttons = document.querySelectorAll('button');
+const results = document.querySelector('div.results');
+
 function getComputerChoice() {
     const listOfOptions = ['ROCK', 'PAPER', 'SCISSORS'];
     const indexChoice =  Math.floor(Math.random() * 3);
     return listOfOptions[indexChoice]
-}
-
-function isValidOption(option) {
-    return (option == 'ROCK' || option == 'PAPER' || option == 'SCISSORS')
-}
-
-function getPlayerChoice() {
-    while (true) {
-        let playerChoice =  prompt('Choose: ROCK, PAPER or SCISSORS?').trim().toUpperCase();
-        if (isValidOption(playerChoice)) {
-            return playerChoice;
-        } else {
-            console.log('Invalid Option!');
-        }
-    };
 }
 
 function playRound(playerSelection, computerSelection) {
@@ -45,36 +34,73 @@ function playRound(playerSelection, computerSelection) {
     return result;
 }
 
-function updateScore(result, score) {
+function getResult(result) {
     if (result.startsWith('You Win!')) {
-        score.win += 1;
+        return 'win';
     } else if (result.startsWith('You Lose!')){
-        score.lose += 1; 
+        return 'lose';
     } else {
-        score.tie += 1;
+        return 'tie'
+    }
+}
+
+
+function displayResult(result, statusResult) {
+    const gameResult = document.createElement('p')
+    gameResult.textContent = result;
+    switch(statusResult) {
+        case 'win':
+            gameResult.style.color = 'blue'
+            break;
+        case 'lose':
+            gameResult.style.color = 'red'
+            break;
+    }
+    results.appendChild(gameResult);
+}
+
+function displayFinalResult() {
+    const finalResult = document.createElement('p')
+    finalResult.style.fontWeight = 'bold'
+    finalResult.textContent = `FINAL SCORE: You [${score.win}] x Computer [${score.lose}] x Tie [${score.tie}]`;
+    results.appendChild(finalResult);
+}
+
+function updateScore(statusResult) {
+    switch(statusResult) {
+        case 'win':
+            score.win += 1
+            break;
+        case 'lose':
+            score.lose += 1
+            break;
+        case 'tie':
+            score.tie += 1
+            break;
+    }
+    if (score.win == 5 || score.lose == 5) {
+        endGame();
     }
     return score;
 }
 
-function displayResult(score) {
-    const gameResult = (score.win > score.lose)
-    ? 'You Win!'
-    : (score.win < score.lose)
-    ? 'You Lose!'
-    : 'Tie!'
-    console.table(score);
-    alert(`Final score => You: ${score.win} x Computer: ${score.lose} - ${gameResult}`);
-
+function disableButtons() {
+    buttons.forEach((button) => {
+        button.setAttribute('disabled', 'disabled');
+    });
 }
 
-function game(numberOfRounds=5) {
-    const score = { win: 0, lose: 0, tie: 0 };
-    for (let round = 0; round < numberOfRounds; round++) {
-        let roundResult = playRound(getPlayerChoice(), getComputerChoice());
-        updateScore(roundResult, score);
-        console.log(roundResult);
-    }
-    displayResult(score);
+function endGame() {
+    disableButtons();
+    displayFinalResult();
 }
 
-game();
+buttons.forEach((button) => {
+    const playerChoice = button.id.toUpperCase();
+    button.addEventListener('click', () => {
+        const result = playRound(playerChoice, getComputerChoice());
+        const statusResult = getResult(result)
+        displayResult(result, statusResult);
+        updateScore(statusResult);
+    });
+});
